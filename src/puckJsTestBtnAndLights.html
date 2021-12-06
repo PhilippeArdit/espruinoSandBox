@@ -1,0 +1,97 @@
+<html>
+
+<head>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        svg {
+            display: block;
+            position: absolute;
+            top: 0%;
+            left: 0%;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- light -->
+    <svg viewBox="0 0 24 24">
+        <path fill="#000000"
+              d="M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z" />
+    </svg>
+
+    <!-- clicked radio button -->
+    <svg style="width:240px;height:240px"
+         viewBox="0 0 24 24">
+        <path fill="currentColor"
+              d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7Z" />
+    </svg>
+
+    <!-- unclicked radio button -->
+    <svg style="width:240px;height:240px"
+         viewBox="0 0 24 24">
+        <path fill="currentColor"
+              d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+    </svg>
+
+
+    <script src="https://www.puck-js.com/puck.js"></script>
+    <script type="text/javascript">
+        // Get the actual curve inside the SVG. You could make differemt
+        // parts of a more complex SVG do different things...
+        var path = document.getElementsByTagName('path')[0];
+        // Make sure your mouse cursor turns into a hand when over it, and gray it out
+        path.style = "cursor:pointer;fill:#BBB";
+        // the possible states we could be in
+        var state = 0;
+        var states = [
+            { color: "#444", command: "digitalWrite([LED3,LED2,LED1],0);\n" },
+            { color: "red", command: "digitalWrite([LED3,LED2,LED1],1);\n" },
+            { color: "green", command: "digitalWrite([LED3,LED2,LED1],2);\n" },
+            { color: "blue", command: "digitalWrite([LED3,LED2,LED1],4);\n" },
+        ];
+
+
+
+        // get the radio buttons
+        var clickedPath = document.getElementsByTagName('path')[1];
+        var unclickedPath = document.getElementsByTagName('path')[2];
+        clickedPath.style.display = "none";
+        unclickedPath.style.display = "none";
+
+
+        function getBtnValue() {
+            Puck.eval("BTN.read()", function (v) {
+                if (v) {
+                    unclickedPath.style.display = "none";
+                    clickedPath.style.display = "block";
+                } else {
+                    clickedPath.style.display = "none";
+                    unclickedPath.style.display = "block";
+                }
+                setTimeout(function () {
+                    getBtnValue();
+                }, 250);
+            });
+        }
+
+
+        // Now send commands to turn the LED on or off
+        path.addEventListener("click", function () {
+            state++;
+            if (state >= states.length)
+                state = 0;
+            path.style.fill = states[state].color;
+            Puck.write(states[state].command);
+
+            // start to get button status
+            getBtnValue();
+        });
+    </script>
+</body>
+
+</html>
