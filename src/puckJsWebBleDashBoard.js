@@ -1,4 +1,3 @@
-console.log(12345);
 var bPreview = true;
 var tempData = [];
 var accXData = [];
@@ -55,6 +54,7 @@ function connectDevice() {
                         i = buf.indexOf("\n");
                     }
                 });
+
                 // First, reset Puck.js
                 connection.write("reset();\n", function () {
                     // Wait for it to reset itself
@@ -66,8 +66,8 @@ function connectDevice() {
                         connection.write("setInterval(\
                                                 function(){\
                                                     Bluetooth.println(\
-                                                        JSON.stringify(
-                                                        {light:Puck.light(),bat:Puck.getBatteryPercentage(),btn:BTN.read(),ag:Puck.accel(),temp:E.getTemperature()}\
+                                                        JSON.stringify(\
+                                                                {light:Puck.light(),bat:Puck.getBatteryPercentage(),btn:BTN.read(),ag:Puck.accel(),temp:E.getTemperature()}\
                                                         )\
                                                     );\
                                                 },\
@@ -80,19 +80,31 @@ function connectDevice() {
                     }, 1500);
                 });
         });
-
 }
+
+
 
 // Set up the controls we see on the screen    
 var elements = {
-        heading: TD.label({ x: 10, y: 10, width: 190, height: 50, label: "Sensors dashboard" }),
-        light: TD.gauge({ x: 10, y: 250, width: 180, height: 180, label: "Light", value: 0, min: 0, max: 100 }),
-        bat: TD.gauge({ x: 200, y: 250, width: 180, height: 180, label: "Battery Level", value: 0, min: 0, max: 100 }),
-        tempGraph: TD.graph({ x: 10, y: 60, width: 350, height: 180, label: "", min: 0, max: 50, data: tempData }),
-        temp: TD.value({x:10,y:60,width:100,height:10,label:"Temperature &#8451;", value: 20.55 }),
-        accXGraph: TD.graph({ x: 10, y: 430, width: 350, height: 180, label: "", min: 0, max: 50, data: accXData }),
-        accX: TD.value({x:10,y:60,width:100,height:10,label:"Accel X",value:1.58}),
-        modal: TD.modal({ x: 10, y: 10, width: 600, height: 530, label: "Click to connect", onchange: connectDevice })
+        heading:        TD.label({ x: 10,  y: 10,  width: 360, height: 40,  label: "Puck.js sensors dashboard" }),
+        tempGraph:      TD.graph({ x: 10,  y: 60,  width: 360, height: 170, label: "", min: 0, max: 50, data: tempData }),
+        temp:           TD.value({ x: 10,  y: 60,  width: 100, height: 50,  label: "Temperature &#8451;", value: 20.55 }),             
+        accXGraph:      TD.graph({ x: 10,  y: 240, width: 360, height: 170, label: "", min: 0, max: 50, data: accXData }),
+        accX:           TD.value({ x: 10,  y: 240, width: 100, height: 50,  label: "Accel X",value:1.58}),
+        light:          TD.gauge({ x: 10,  y: 420, width: 170, height: 170, label: "Light", value: 0, min: 0, max: 100 }),
+        bat:            TD.gauge({ x: 200, y: 420, width: 170, height: 170, label: "Battery Level", value: 0, min: 0, max: 100 }),
+        modal:          TD.modal({ x: 10,  y: 10,  width: 360, height: 610, label: "Click to connect", onchange: connectDevice })
 }
 for (var i in elements)
         document.body.appendChild(elements[i]);
+
+
+
+
+
+
+
+
+
+
+
