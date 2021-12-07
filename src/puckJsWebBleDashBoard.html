@@ -13,8 +13,9 @@
     <script src="https://www.puck-js.com/puck.js"></script>
     <script>
         var dataTemp = [];
+        var nbVal = 50;
         var ii = 0;
-        for (var i = 0; i < 50; i++) dataTemp.push(ii+(i % 5));
+        for (var i = 0; i < nbVal; i++) dataTemp.push(ii+(i - (i % 5)));
 
         // Called when we get a line of data - updates the light color
         function onLine(line) {
@@ -23,7 +24,7 @@
                 //console.log("Received JSON: ", j);
                 elements.light.setValue(j.light * 100);
 //for (var i = 0; i < 49; i++) dataTemp[i] = dataTemp[i+1]; dataTemp[50]=j.temp;
-                //dataTemp.shift(); dataTemp.push(j.temp);
+                dataTemp.shift(); dataTemp.push(j.temp);
                 
                 elements.temp.setData(dataTemp)
                 elements.bat.setValue(j.temp);
@@ -36,6 +37,8 @@
 
 
         function connectDevice() {
+            //elements.modal.remove();
+            //return;
             Puck.connect(function (c) {
                 if (!c) {
                     alert("Couldn't connect!");
