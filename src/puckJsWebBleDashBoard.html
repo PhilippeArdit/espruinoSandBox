@@ -22,8 +22,11 @@
                 var j = JSON.parse(line);
                 //console.log("Received JSON: ", j);
                 elements.light.setValue(j.light * 100);
-                if (ii>50)ii=0;
-                dataTemp.shift(); dataTemp.push(j.temp);
+for (var i = 0; i < 49; i++) {
+    dataTemp[i] = dataTemp[i+1];
+}
+dataTemp[50]=j.temp;
+                //dataTemp.shift(); //dataTemp.push(j.temp);
                 
                 elements.temp.setData(dataTemp)
                 elements.bat.setValue(j.temp);
