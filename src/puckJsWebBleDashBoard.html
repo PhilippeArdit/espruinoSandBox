@@ -19,14 +19,14 @@
         function onLine(line) {
             try {
                 var j = JSON.parse(line);
-                console.log("Received JSON: ", j);
+                //console.log("Received JSON: ", j);
                 elements.light.setValue(j.light * 100);
                 dataTemp.shift(); dataTemp.push(j.temp);
                 elements.temp.setData(dataTemp)
                 elements.bat.setValue(j.bat);
 
             } catch (e) {
-                console.log("Received: ", line);
+                //console.log("Received: ", line);
             }
         }
         var connection;
@@ -84,7 +84,7 @@
         }
         // Set up the controls we see on the screen    
         var elements = {
-            heading: TD.label({ x: 10, y: 10, width: 190, height: 50, label: "Puck.js sensors dashboard" }),
+            heading: TD.label({ x: 10, y: 10, width: 190, height: 50, label: "Sensors dashboard" }),
             light: TD.gauge({ x: 10, y: 70, width: 190, height: 220, label: "Light", value: 0, min: 0, max: 100 }),
             bat: TD.gauge({ x: 10, y: 290, width: 190, height: 220, label: "Battery Level", value: 0, min: 0, max: 100 }),
             temp: TD.graph({ x: 210, y: 10, width: 400, height: 180, label: "Temperature", data: dataTemp }),
