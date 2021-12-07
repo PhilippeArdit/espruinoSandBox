@@ -51,13 +51,13 @@ function onLine(line) {
 
         shiftTab(tempData, elements.tempGraph, elements.temp, j.temp);
 
-        shiftTab(accXData, elements.accXGraph, elements.accX, j.ag.acc.x/1000);
-        shiftTab(accYData, elements.accYGraph, elements.accY, j.ag.acc.y/1000);
-        shiftTab(accZData, elements.accZGraph, elements.accZ, j.ag.acc.z/1000);
+        shiftTab(accXData, elements.accXGraph, elements.accX, Math.round(j.ag.acc.x*100));
+        shiftTab(accYData, elements.accYGraph, elements.accY, Math.round(j.ag.acc.y*100));
+        shiftTab(accZData, elements.accZGraph, elements.accZ, Math.round(j.ag.acc.z*100));
         
-        shiftTab(gyrXData, elements.gyrXGraph, elements.gyrX, j.ag.gyro.x/1000);
-        shiftTab(gyrYData, elements.gyrYGraph, elements.gyrY, j.ag.gyro.y/1000);
-        shiftTab(gyrZData, elements.gyrZGraph, elements.gyrZ, j.ag.gyro.z/1000);
+        shiftTab(gyrXData, elements.gyrXGraph, elements.gyrX, Math.round(j.ag.gyro.x/1000));
+        shiftTab(gyrYData, elements.gyrYGraph, elements.gyrY, Math.round(j.ag.gyro.y/1000));
+        shiftTab(gyrZData, elements.gyrZGraph, elements.gyrZ, Math.round(j.ag.gyro.z/1000));
         
         elements.light.setValue(j.light * 100);
         elements.bat.setValue(j.bat);
