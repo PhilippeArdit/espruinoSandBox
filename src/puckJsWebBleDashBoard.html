@@ -33,9 +33,10 @@ for (var i = 0; i < tabSize; i++) {
 
 function shiftTab(tab, graph, value, newVal) {
     tab.shift();
-    var average = newVal
-    for (var i = 0; i < 4; i++) average += tab[i];
-    average = average / 5;
+    var average = newVal;
+    const nbVal = 10;
+    for (var i = tabSize; i > tabSize - nbVal - 1; i--) average += tab[i];
+    average = average / nbVal;
     tab.push(newVal);
     graph.setData(tab);
     value.setValue(newVal);
@@ -50,13 +51,13 @@ function onLine(line) {
 
         shiftTab(tempData, elements.tempGraph, elements.temp, j.temp);
 
-        shiftTab(accXData, elements.accXGraph, elements.accX, j.ag.acc.x);
-        shiftTab(accYData, elements.accYGraph, elements.accY, j.ag.acc.y);
-        shiftTab(accZData, elements.accZGraph, elements.accZ, j.ag.acc.z);
+        shiftTab(accXData, elements.accXGraph, elements.accX, j.ag.acc.x/1000);
+        shiftTab(accYData, elements.accYGraph, elements.accY, j.ag.acc.y/1000);
+        shiftTab(accZData, elements.accZGraph, elements.accZ, j.ag.acc.z/1000);
         
-        shiftTab(gyrXData, elements.gyrXGraph, elements.gyrX, j.ag.gyro.x);
-        shiftTab(gyrYData, elements.gyrYGraph, elements.gyrY, j.ag.gyro.y);
-        shiftTab(gyrZData, elements.gyrZGraph, elements.gyrZ, j.ag.gyro.z);
+        shiftTab(gyrXData, elements.gyrXGraph, elements.gyrX, j.ag.gyro.x/1000);
+        shiftTab(gyrYData, elements.gyrYGraph, elements.gyrY, j.ag.gyro.y/1000);
+        shiftTab(gyrZData, elements.gyrZGraph, elements.gyrZ, j.ag.gyro.z/1000);
         
         elements.light.setValue(j.light * 100);
         elements.bat.setValue(j.bat);
@@ -142,13 +143,13 @@ var elements = {
         bat:            TD.gauge({ x: 200, y: 0, width: 170, height: 170, label: "Battery Level", value: 0, min: 0, max: 100 }),
 
         gyrXGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -200, max: 200, data: gyrXData }),
-        gyrX:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrX",value: 0}),
+        gyrX:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrX &deg;/s",value: 0}),
 
         gyrYGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -200, max: 200, data: gyrYData }),
-        gyrY:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrY",value: 0}),
+        gyrY:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrY &deg;/s",value: 0}),
 
         gyrZGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -200, max: 200, data: gyrZData }),
-        gyrZ:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrZ",value: 0}),
+        gyrZ:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrZ &deg;/s",value: 0}),
 
         modal:          TD.modal({ x: 10,  y: 0, width: 360, height: 0,   label: "Click to connect", onchange: connectDevice })
 }
