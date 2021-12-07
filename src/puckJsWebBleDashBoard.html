@@ -22,11 +22,11 @@
                 var j = JSON.parse(line);
                 //console.log("Received JSON: ", j);
                 elements.light.setValue(j.light * 100);
-                if (ii>100)ii=0;
-                dataTemp.shift(); dataTemp.push(ii++);
+                if (ii>50)ii=0;
+                dataTemp.shift(); dataTemp.push(j.temp);
                 
                 elements.temp.setData(dataTemp)
-                elements.bat.setValue(j.bat);
+                elements.bat.setValue(j.temp);
 
             } catch (e) {
                 //console.log("Received: ", line);
