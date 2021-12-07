@@ -13,7 +13,8 @@
     <script src="https://www.puck-js.com/puck.js"></script>
     <script>
         var dataTemp = [];
-        for (var i = 0; i < 100; i++) dataTemp.push(100);
+        var ii = 0;
+        for (var i = 0; i < 100; i++) dataTemp.push(ii++);
 
         // Called when we get a line of data - updates the light color
         function onLine(line) {
@@ -21,7 +22,9 @@
                 var j = JSON.parse(line);
                 //console.log("Received JSON: ", j);
                 elements.light.setValue(j.light * 100);
-                dataTemp.shift(); dataTemp.push(j.temp);
+                if (ii>100)ii=0;
+                dataTemp.shift(); dataTemp.push(ii++);
+                
                 elements.temp.setData(dataTemp)
                 elements.bat.setValue(j.bat);
 
