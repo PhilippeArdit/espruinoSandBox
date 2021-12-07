@@ -23,9 +23,7 @@
                 var j = JSON.parse(line);
                 //console.log("Received JSON: ", j);
                 elements.light.setValue(j.light * 100);
-//for (var i = 0; i < 49; i++) dataTemp[i] = dataTemp[i+1]; dataTemp[50]=j.temp;
                 dataTemp.shift(); dataTemp.push(j.temp);
-                
                 elements.temp.setData(dataTemp)
                 elements.bat.setValue(j.bat);
 
@@ -93,9 +91,9 @@
         // Set up the controls we see on the screen    
         var elements = {
             heading: TD.label({ x: 10, y: 10, width: 190, height: 50, label: "Sensors dashboard" }),
-            light: TD.gauge({ x: 10, y: 70, width: 190, height: 220, label: "Light", value: 0, min: 0, max: 100 }),
-            bat: TD.gauge({ x: 10, y: 290, width: 190, height: 220, label: "Battery Level", value: 0, min: 0, max: 100 }),
-            temp: TD.graph({ x: 210, y: 10, width: 400, height: 180, label: "Temperature", data: dataTemp }),
+            light: TD.gauge({ x: 10, y: 250, width: 180, height: 180, label: "Light", value: 0, min: 0, max: 100 }),
+            bat: TD.gauge({ x: 200, y: 250, width: 180, height: 180, label: "Battery Level", value: 0, min: 0, max: 100 }),
+            temp: TD.graph({ x: 10, y: 60, width: 350, height: 180, label: "Temperature", data: dataTemp }),
             
             modal: TD.modal({ x: 10, y: 10, width: 600, height: 530, label: "Click to connect", onchange: connectDevice })
         }
