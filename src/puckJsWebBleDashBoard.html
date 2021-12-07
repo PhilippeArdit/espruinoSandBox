@@ -17,12 +17,25 @@ var tempData = [];
 var accXData = [];
 var accYData = [];
 var accZData = [];
+var gyrXData = [];
+var gyrYData = [];
+var gyrZData = [];
 var tabSize = 50;
 for (var i = 0; i < tabSize; i++) {
-   tempData.push(0);
-   accXData.push(0);
-   accYData.push(0);
-   accZData.push(0);
+    tempData.push(0);
+    accXData.push(0);
+    accYData.push(0);
+    accZData.push(0);
+    gyrXData.push(0);
+    gyrYData.push(0);
+    gyrZData.push(0);
+}   
+
+function shiftTab(tab, graph, value, newVal) {
+    tab.shift(); 
+    tab.push(newVal);
+    graph.setData(tab);
+    value.setValue(newVal);
 }
 
 // Caller when we get a line of data
@@ -31,22 +44,17 @@ function onLine(line) {
         var j = JSON.parse(line);
         //console.log("Received JSON: ", j);
         
-        tempData.shift(); tempData.push(j.temp);
-        elements.tempGraph.setData(tempData);
-        elements.temp.setValue(j.temp);
-        
-        accXData.shift(); accXData.push(j.ag.acc.x);
-        elements.accXGraph.setData(accXData);
-        elements.accX.setValue(j.ag.acc.x);
-        
-        accYData.shift(); accYData.push(j.ag.acc.y);
-        elements.accYGraph.setData(accYData);
-        elements.accY.setValue(j.ag.acc.y);
-        
-        accZData.shift(); accZData.push(j.ag.acc.z);
-        elements.accZGraph.setData(accZData);
-        elements.accZ.setValue(j.ag.acc.z);
 
+        shiftTab(tempData, elements.tempGraph, elements.temp, j.temp);
+
+        shiftTab(accXData, elements.accXGraph, elements.accX, j.ag.acc.x);
+        shiftTab(accYData, elements.accYGraph, elements.accY, j.ag.acc.y);
+        shiftTab(accZData, elements.accZGraph, elements.accZ, j.ag.acc.z);
+        
+        shiftTab(gyrXData, elements.gyrXGraph, elements.gyrX, j.ag.gyro.x);
+        shiftTab(gyrYData, elements.gyrYGraph, elements.gyrY, j.ag.gyro.y);
+        shiftTab(gyrZData, elements.gyrZGraph, elements.gyrZ, j.ag.gyro.z);
+        
         elements.light.setValue(j.light * 100);
         elements.bat.setValue(j.bat);
    } catch (e) {
@@ -113,27 +121,53 @@ function connectDevice() {
 
 // Set up the controls we see on the screen    
 var elements = {
-        heading:        TD.label({ x: 10,  y: 10,  width: 360, height: 40,  label: "Puck.js sensors dashboard" }),
+        heading:        TD.label({ x: 10,  y: 0,  width: 360, height: 40,  label: "Puck.js sensors dashboard" }),
         
-        tempGraph:      TD.graph({ x: 10,  y: 60,  width: 360, height: 170, label: "", min: 0, max: 50, data: tempData }),
-        temp:           TD.value({ x: 10,  y: 60,  width: 100, height: 50,  label: "Temperature &#8451;", value: 0 }),
+        tempGraph:      TD.graph({ x: 10,  y: 0,  width: 360, height: 170, label: "", min: 0, max: 50, data: tempData }),
+        temp:           TD.value({ x: 10,  y: 0,  width: 100, height: 50,  label: "Temperature &#8451;", value: 0 }),
         
-        accXGraph:      TD.graph({ x: 10,  y: 240, width: 360, height: 170, label: "", min: -2, max: 2, data: accXData }),
-        accX:           TD.value({ x: 10,  y: 240, width: 100, height: 50,  label: "AccX g",value: 0}),
+        accXGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -2, max: 2, data: accXData }),
+        accX:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "AccX g",value: 0}),
         
-        accYGraph:      TD.graph({ x: 10,  y: 420, width: 360, height: 170, label: "", min: -2, max: 2, data: accYData }),
-        accY:           TD.value({ x: 10,  y: 420, width: 100, height: 50,  label: "AccY g",value: 0}),
+        accYGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -2, max: 2, data: accYData }),
+        accY:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "AccY g",value: 0}),
         
-        accZGraph:      TD.graph({ x: 10,  y: 600, width: 360, height: 170, label: "", min: -2, max: 2, data: accZData }),
-        accZ:           TD.value({ x: 10,  y: 600, width: 100, height: 50,  label: "AccZ g",value: 0}),
+        accZGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -2, max: 2, data: accZData }),
+        accZ:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "AccZ g",value: 0}),
         
-        light:          TD.gauge({ x: 10,  y: 780, width: 170, height: 170, label: "Light", value: 0, min: 0, max: 100 }),
-        bat:            TD.gauge({ x: 200, y: 780, width: 170, height: 170, label: "Battery Level", value: 0, min: 0, max: 100 }),
-        
-        modal:          TD.modal({ x: 10,  y: 10,  width: 360, height: 850, label: "Click to connect", onchange: connectDevice })
+        light:          TD.gauge({ x: 10,  y: 0, width: 170, height: 170, label: "Light", value: 0, min: 0, max: 100 }),
+        bat:            TD.gauge({ x: 200, y: 0, width: 170, height: 170, label: "Battery Level", value: 0, min: 0, max: 100 }),
+
+        gyrXGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -200, max: 200, data: gyrXData }),
+        gyrX:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrX",value: 0}),
+
+        gyrYGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -200, max: 200, data: gyrYData }),
+        gyrY:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrY",value: 0}),
+
+        gyrZGraph:      TD.graph({ x: 10,  y: 0, width: 360, height: 170, label: "", min: -200, max: 200, data: gyrZData }),
+        gyrZ:           TD.value({ x: 10,  y: 0, width: 100, height: 50,  label: "GyrZ",value: 0}),
+
+        modal:          TD.modal({ x: 10,  y: 0, width: 360, height: 0,   label: "Click to connect", onchange: connectDevice })
 }
-for (var i in elements)
-        document.body.appendChild(elements[i]);
+
+// Compute top position for each element
+// and add it in DOM 
+var y = 5;
+var b = true;
+var h = 5;
+var hpx = '';
+for (var i in elements) {
+    elem = elements[i];
+    if (!b || hpx == '') hpx = elem.style.height;
+    if (b) y = parseInt(hpx.substr(0, hpx.indexOf('px')), 10) + y + 10;
+    else h = y;
+    b = !b;
+    elem.style.top = h + 'px';
+    document.body.appendChild(elem);
+}
+
+elements.modal.style.top = 10;
+elements.modal.style.height = h;
 
         </script>
     </body>
