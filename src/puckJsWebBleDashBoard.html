@@ -32,7 +32,10 @@ for (var i = 0; i < tabSize; i++) {
 }   
 
 function shiftTab(tab, graph, value, newVal) {
-    tab.shift(); 
+    tab.shift();
+    var average = newVal
+    for (var i = 0; i < 4; i++) average += tab[i];
+    average = average / 5;
     tab.push(newVal);
     graph.setData(tab);
     value.setValue(newVal);
@@ -106,7 +109,7 @@ function connectDevice() {
                                                         )\
                                                     );\
                                                 },\
-                                                500\
+                                                125\
                                             );\
                                             NRF.on('disconnect', function() {reset()});\
                                             \n",
