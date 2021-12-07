@@ -1,4 +1,4 @@
-var bPreview = true;
+var bPreview = navigator.appName == "Netscape";
 var tempData = [];
 var accXData = [];
 var tabSize = 50;
@@ -97,9 +97,6 @@ var elements = {
 }
 for (var i in elements)
         document.body.appendChild(elements[i]);
-
-
-
 
 
 
