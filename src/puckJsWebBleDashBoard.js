@@ -1,4 +1,4 @@
-var bPreview = navigator.appName == "Netscape";
+var bPreview = confirm("run without puck ?");
 var tempData = [];
 var accXData = [];
 var tabSize = 50;
