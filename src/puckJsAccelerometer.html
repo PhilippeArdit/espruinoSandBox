@@ -15,9 +15,9 @@ var JS_CODE = `
     function(){
       var d = [
         "A",
-        Math.round(Puck.accel().x*100),
-        Math.round(Puck.accel().y*100),
-        Math.round(Puck.accel().z*100)
+        Math.round(Puck.accel().acc.x*100),
+        Math.round(Puck.accel().acc.y*100),
+        Math.round(Puck.accel().acc.z*100)
       ];
       Bluetooth.println(d.join(","));
     },
