@@ -13,6 +13,6 @@ In fact, it is more a set of personal experiments...
 - [
 EspruinoDocs on GitHub](https://github.com/espruino/EspruinoDocs/blob/master/boards/Puck.js.md)
 - Some tests :
-  - [print Acc Gyr Mag Raw Data](https://philippeardit.github.io/webPages/html/printAccGyrMagRawData.html)
+  - [espruinoTests (I2C scan, cube, ...)](https://philippeardit.github.io/webPages/html/espruinoTests.html)
   - Tutorial "[Using Web Bluetooth with Espruino](https://www.espruino.com/Web%20Bluetooth)" : [Pilot RGB lights and get button state](https://philippeardit.github.io/webPages/html/puckJsTestBtnAndLights.html)
   - Tutorial "[Web Bluetooth Dashboards](https://www.espruino.com/Web+Bluetooth+Dashboard)" : [Sensord DashBoard](https://philippeardit.github.io/webPages/html/puckJsWebBleDashBoard.html)

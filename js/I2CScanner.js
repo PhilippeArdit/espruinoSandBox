@@ -1,34 +1,34 @@
 /**
  * Inspired from https://raw.githubusercontent.com/PaddeK/espruino-i2c-scanner/master/I2CScanner.js
- * 
- * Usage : 
- *  const I2CScanner = require('https://raw.githubusercontent.com/PaddeK/espruino-i2c-scanner/master/I2CScanner.js');
- *  const I2CScanner = require('https://raw.githubusercontent.com/PaddeK/espruino-i2c-scanner/master/I2CScanner.js');
- *  I2CScanner.scan({i2c: I2C1, serial: USB});
+ * https://github.com/PaddeK/espruino-i2c-scanner
  */
 
-const
-    Progress = '|/-\\',
-    Version = '0.1.0',
-    Defaults = {
-    i2c: null,                      // I2C Port to scan - must be set and defined as I2C Object
-    serial: null,                   // Serial Port used for output - must be set and defined as Serial Object
-    header: true,                   // Print header/footer of result table
-    printAll: true,                 // Print every scan result (true) or only results with a found device (false)
-    showProgress: true,             // Show progress indication (true) or suppress progress indication (false)
-    findOne: true,                  // Stop scan if device is found (true) or scan complete address range (false)
-    earlyCancel: true,              // Skip speeds after first failure (true) or always try all speeds (false)
-    startAddress: 0,                // Start address of address range to scan for devices
-    endAddress: 127,                // End address of address range to scan for devices
-    speeds: [100, 200, 400, 800],   // Speeds in KHz to scan each address with
-    noneFound: '.',                 // Symbol to use to indicate no device was found
-    canceled: 'x',                  // Symbol to use to indicate canceled scan
-    found: 'V'                      // Symbol to use to indicate device was found
-};
 
-scan = function (options)
-{
-    let prog, pad, startTime = Date.now(), count = 0, i = 0, header = '', o = Object.assign(Defaults, options || {});
+function I2CScanner(options) {
+    const
+        Progress = '|/-\\',
+        Version = '0.1.0',
+        Defaults = {
+            i2c: null, // I2C Port to scan - must be set and defined as I2C Object
+            serial: null, // Serial Port used for output - must be set and defined as Serial Object
+            header: true, // Print header/footer of result table
+            printAll: true, // Print every scan result (true) or only results with a found device (false)
+            showProgress: true, // Show progress indication (true) or suppress progress indication (false)
+            findOne: true, // Stop scan if device is found (true) or scan complete address range (false)
+            earlyCancel: true, // Skip speeds after first failure (true) or always try all speeds (false)
+            startAddress: 0, // Start address of address range to scan for devices
+            endAddress: 127, // End address of address range to scan for devices
+            speeds: [100, 200, 400, 800], // Speeds in KHz to scan each address with
+            noneFound: '.', // Symbol to use to indicate no device was found
+            canceled: 'x', // Symbol to use to indicate canceled scan
+            found: 'V' // Symbol to use to indicate device was found
+        };
+
+    let prog, pad, startTime = Date.now(),
+        count = 0,
+        i = 0,
+        header = '',
+        o = Object.assign(Defaults, options || {});
 
     o.speeds = (Array.isArray(o.speeds) ? o.speeds : [o.speeds]).sort();
 
@@ -55,17 +55,22 @@ scan = function (options)
     }
 
     for (let address = o.startAddress; address <= o.endAddress;) {
-        let found = [], fnd = false, printLine = o.printAll;
+        let found = [],
+            fnd = false,
+            printLine = o.printAll;
 
         o.speeds.some((speed, index) => {
             o.showProgress && prog();
-            o.i2c.setup(Object.assign(o.i2c._options, {bitrate: speed * 1000}));
+            o.i2c.setup(Object.assign(o.i2c._options, {
+                bitrate: speed * 1000
+            }));
 
             try {
                 o.i2c.writeTo(address, 0);
                 found[index] = 'V';
             } catch (e) {
                 found[index] = '.';
+                digitalPulse(LED1, 1, 1);
             }
 
             fnd |= found[index] === 'V';
