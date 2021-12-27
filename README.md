@@ -7,11 +7,14 @@ In fact, it is more a set of personal experiments...
 - Build, test, and debug regex : [https://regex101.com](https://regex101.com)
 - MarkDown Basic Syntax : [https://www.markdownguide.org/basic-syntax](https://www.markdownguide.org/basic-syntax)
 
-## Puck.js 
+## Puck.js  / Espruino Pico
 - [Espruino IDE](https://www.espruino.com/ide)
 - [Puck.js - Espruino](https://www.espruino.com/Puck.js)
-- [
-EspruinoDocs on GitHub](https://github.com/espruino/EspruinoDocs/blob/master/boards/Puck.js.md)
+- [EspruinoDocs on GitHub](https://github.com/espruino/EspruinoDocs/blob/master/boards/Puck.js.md)
+- [SSD1306 OLED driver⇠](https://www.espruino.com/SSD1306)
+- [Cube visualisation wuth "three.js"](https://threejs.org/)
+- [I2C Scanner](https://github.com/PaddeK/espruino-i2c-scanner)
+
 - Some tests :
   - [espruinoTests (I2C scan, cube, ...)](https://philippeardit.github.io/webPages/html/espruinoTests.html)
   - Tutorial "[Using Web Bluetooth with Espruino](https://www.espruino.com/Web%20Bluetooth)" : [Pilot RGB lights and get button state](https://philippeardit.github.io/webPages/html/puckJsTestBtnAndLights.html)

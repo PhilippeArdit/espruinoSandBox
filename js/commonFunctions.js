@@ -41,19 +41,25 @@ function onload() {
     <button id="btnOLED_HelloWorld">OLED_HelloWorld</button>
     <br /><br />
 
-    <form>
-      Get Raw data for: <input type="radio" name="choiceAccGyrMAgRaw" value="acc" id="choice-acc">
-      <label for="choice-acc">acc</label>
-      <input type="radio" name="choiceAccGyrMAgRaw" value="gyr" id="choice-gyr">
-      <label for="choice-gyr">gyr</label>
-      <input type="radio" name="choiceAccGyrMAgRaw" value="mag" id="choice-mag">
-      <label for="choice-mag">mag</label>
-    </form>
-    <button id="btnAccGyrMAgRawData">Launch</button>
+    <button id="btnShowCube">Show cube</button>
 
     <br /><br />
 
   `);
+
+  function getRadioselectedValue(inputName) {
+    const rbs = document.querySelectorAll('input[name="' + inputName + '"]');
+    let selectedValue;
+    for (const rb of rbs) {
+      if (rb.checked) {
+        selectedValue = rb.value;
+        break;
+      }
+    }
+    if (typeof selectedValue == "undefined")
+      alert("Please make a choice for " + inputName);
+    return selectedValue;
+  }
 
   // When we click the connect button...
   document.querySelector('#btnConnect').onclick = function () {
@@ -99,11 +105,13 @@ function onload() {
   };
 
   // When we click the btnAccGyrMAgRawData button...
-  document.querySelector('#btnAccGyrMAgRawData').onclick = function () {
-    let selectedValue = getRadioselectedValue('choiceAccGyrMAgRaw');
-    if (!selectedValue) return false;
-    sendCodeToDevice("(" + printAccGyrMagRawData.toString() + ")('" + selectedValue + "');\n");
-    showCube();
+  document.querySelector('#btnShowCube').onclick = function () {
+    var freqencyHz = 12.5; // Hz
+    // Valid sample rates : 1660, 833, 416, 208, 104, 52, 26, 12.5, 1.6 Hz
+    sendCodeToDevice("(" + printAccGyrMagRawData.toString() + ")(" + freqencyHz + ");\n");
+    initAHRS(freqencyHz);
+    createScene();
+    render();
   };
 
   // When we click the OLED_HelloWorld button...
@@ -123,20 +131,6 @@ function onload() {
 /**
  * Interactions with device
  */
-
-// When we get a line of data... Default "onLine" function
-onLine = function (line) {
-  console.log("..." + line);
-  var d = line.split(",");
-  if (d.length == 4 && d[0] == "A") {
-    // we have an accelerometer reading
-    accel.x = parseInt(d[1]) / 100;
-    accel.y = parseInt(d[2]) / 100;
-    accel.z = parseInt(d[3]) / 100;
-    console.log(accel.x + " " + accel.y + " " + accel.z + " ");
-    renderScene();
-  }
-}
 
 var connection;
 
@@ -188,7 +182,7 @@ function connectToDevice(PuckOrUART, JS_CODE, callBackFunction) {
       // Wait for it to reset itself
       setTimeout(function () {
         // Now upload our code to it
-        connection.write("\x03\x10\x03\x10if(1){" + JS_CODE + "}\n",
+        connection.write("\x03\x10if(1){" + JS_CODE + "}\n",
           function () {
             console.log("Ready...");
           });
@@ -197,59 +191,215 @@ function connectToDevice(PuckOrUART, JS_CODE, callBackFunction) {
   });
 }
 
-function getRadioselectedValue(inputName) {
-  const rbs = document.querySelectorAll('input[name="' + inputName + '"]');
-  let selectedValue;
-  for (const rb of rbs) {
-    if (rb.checked) {
-      selectedValue = rb.value;
-      break;
-    }
-  }
-  if (typeof selectedValue == "undefined")
-    alert("Please make a choice for " + inputName);
-  return selectedValue;
+// When we get a line of data... 
+var _acc, _gyr, _mag, _bHasRawData = false;
+
+function onLine(line) {
+  readenLine = line;
+  //console.log("<- " + line);
+  _bHasRawData = false;
+
+  var d = line.split(",");
+  if (d.length != 12) return;
+
+  var i = 0;
+  if (d[i++] != 'A') return;
+  _acc = new THREE.Vector3(parseFloat(d[i++]) / 1000., parseFloat(d[i++]) / 1000., parseFloat(d[i++]) / 1000. - 0.8);
+  if (d[i++] != 'G') return;
+  _gyr = new THREE.Vector3(parseFloat(d[i++]), parseFloat(d[i++]), parseFloat(d[i++]));
+  if (d[i++] != 'M') return;
+  //_mag = new THREE.Vector3(parseFloat(d[i++])/1000., parseFloat(d[i++])/1000., parseFloat(d[i++])/1000.);
+  _mag = new THREE.Vector3(0, 0, 0);
+
+  _bHasRawData = true;
+  //console.log(_acc);
+  //console.log(_gyr);
+  //console.log(_mag);
 }
 
 /**
+ * ********** ********** ********** **********
  * https: //threejs.org/docs/
+ * ********** ********** ********** **********
  */
-var scene, camera, renderer, cube, WIDTH, HEIGHT, accel;
+var scene, camera, renderer, cube, filter, bias;
 
-function showCube() {
+function initAHRS(freqencyHz) {
+  const AHRS = require('ahrs');
+  filter = new AHRS({
+    /*
+     * The sample interval, in Hz.
+     *
+     * Default: 20
+     */
+    sampleInterval: freqencyHz,
 
-  WIDTH = window.innerWidth;
-  HEIGHT = window.innerHeight;
-  accel = new THREE.Vector3(0, 0, 1);
+    /*
+     * Choose from the `Madgwick` or `Mahony` filter.
+     *
+     * Default: 'Madgwick'
+     */
+    algorithm: 'Madgwick',
 
-  createScene();
-  renderScene();
+    /*
+     * The filter noise value, smaller values have
+     * smoother estimates, but have higher latency.
+     * This only works for the `Madgwick` filter.
+     *
+     * Default: 0.4
+     */
+    beta: 0.4,
+
+    /*
+     * The filter noise values for the `Mahony` filter.
+     */
+    kp: 0.5, // Default: 0.5
+    ki: 0, // Default: 0.0
+
+    /*
+     * When the AHRS algorithm runs for the first time and this value is
+     * set to true, then initialisation is done.
+     *
+     * Default: false
+     */
+    doInitialisation: true,
+  });
+
+  bias = {
+    nbTotVal: 50,
+
+    gyrBias: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    nbGyrVal: 0,
+    gyrBiasDone: false,
+    computeGyrBias: function (rawVect) {
+      if (!this.gyrBiasDone) {
+        this.gyrBias.x += rawVect.x;
+        this.gyrBias.y += rawVect.y;
+        this.gyrBias.z += rawVect.z;
+        if (++this.nbGyrVal >= this.nbTotVal) {
+          this.gyrBiasDone = true;
+          this.gyrBias.x /= this.nbTotVal;
+          this.gyrBias.y /= this.nbTotVal;
+          this.gyrBias.z /= this.nbTotVal;
+        }
+      }
+    },
+
+    accBias: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    nbAccVal: 0,
+    accBiasDone: false,
+    computeAccBias: function (rawVect) {
+      if (!this.accBiasDone) {
+        this.accBias.x += rawVect.x;
+        this.accBias.y += rawVect.y;
+        this.accBias.z += rawVect.z;
+        if (++this.nbAccVal >= this.nbTotVal) {
+          this.accBiasDone = true;
+          this.accBias.x /= this.nbTotVal;
+          this.accBias.y /= this.nbTotVal;
+          this.accBias.z /= this.nbTotVal;
+        }
+      }
+    },
+
+    init: function () {
+      this.gyrBias = {
+        x: 0,
+        y: 0,
+        z: 0
+      };
+      this.nbGyrVal = 0;
+      this.gyrBiasDone = false;
+      this.accBias = {
+        x: 0,
+        y: 0,
+        z: 0
+      };
+      this.nbAccVal = 0;
+      this.accBiasDone = false;
+    }
+  };
+  bias.init();
 }
 
 function createScene() {
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 10);
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10);
   camera.position.set(0, 3.5, 5);
   camera.lookAt(scene.position);
 
   renderer = new THREE.WebGLRenderer({
     antialias: true
   });
-  renderer.setSize(WIDTH, HEIGHT);
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
   document.body.appendChild(renderer.domElement);
 
   cube = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshNormalMaterial());
   scene.add(cube);
-
-  console.log(accel.x + ", " + accel.y + ", " + accel.z);
 }
 
-function renderScene() {
-  cube.lookAt(accel);
+const degrees_to_radians = deg => (deg * Math.PI) / 180.0;
+
+// Render function.
+var render = function () {
+  requestAnimationFrame(render);
+
+  if (!_bHasRawData) return;
+  _bHasRawData = false;
+
+  if (!bias.gyrBiasDone || !bias.accBiasDone) {
+    bias.computeGyrBias(_gyr);
+    bias.computeAccBias(_acc);
+
+    if (bias.gyrBiasDone)
+      console.log('bias.gyrBias :' + JSON.stringify(bias.gyrBias));
+    if (bias.accBiasDone)
+      console.log('bias.accBias :' + JSON.stringify(bias.accBias));
+  }
+
+  if (bias.gyrBiasDone && bias.accBiasDone) {
+    /*
+      Units:
+        gyroscope: radians/s
+        accelerometer: g, where 1 g is 9.81 m/s²
+        magnetometer: unitless, but a relative proportion of the Earth's magnetic field
+     */
+
+    //filter.update(_gyr.x, _gyr.y, _gyr.z, _acc.x, _acc.y, _acc.z, _mag.x, _mag.y, _mag.z, 0.1);
+    filter.update(
+      degrees_to_radians(_gyr.x - bias.gyrBias.x), degrees_to_radians(_gyr.y - bias.gyrBias.y), degrees_to_radians(_gyr.z - bias.gyrBias.z),
+      _acc.x - bias.accBias.x, _acc.y - bias.accBias.y, -(_acc.z - bias.accBias.z),
+      _mag.x, _mag.y, _mag.z,
+      1000 / filter.sampleInterval);
+    var eulerAngles = filter.getEulerAngles();
+    // values in radians
+    // heading is from north, going west (about z - axis).
+    // pitch is from vertical, going forward (about y - axis).
+    // roll is from vertical, going right (about x - axis).
+    cube.rotation.z = eulerAngles.heading; // yaw
+    cube.rotation.x = eulerAngles.pitch;
+    cube.rotation.y = eulerAngles.roll;
+    /*
+    cube.rotation.x += degrees_to_radians(_gyr.x);
+    cube.rotation.y += degrees_to_radians(_gyr.y);
+    cube.rotation.z += degrees_to_radians(_gyr.z);
+     */
+
+    //console.log(eulerAngles);
+  };
+
   renderer.render(scene, camera);
-}
+};
 
 /*
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -276,59 +426,34 @@ function resetOnDisconnect() {
  * For more advanced usage you can also use Puck.magWr(reg,data) and Puck.magRd(reg) to configure the accelerometer chip exactly as required
  * (using the datasheet https://www.espruino.com/files/LIS3MDL.pdf)
  */
-function printAccGyrMagRawData(what) {
-  var bOk = true;
-  switch (what) {
-    case 'acc':
-      Puck.accelOn(26); // 26Hz
-      Puck.accelWr(0x11, Puck.accelRd(0x11) | 0b00001100); // scale to 2000dps
-      break;
-    case 'gyr':
-      Puck.accelOn(26); // 26Hz
-      Puck.accelWr(0x11, Puck.accelRd(0x11) | 0b00001100); // scale to 2000dps
-      break;
-    case 'mag':
-      Puck.magOn();
-      break;
-    default:
-      bOk = false;
-  }
-  if (bOk) {
-    setInterval(
-      function () {
-        var d = [];
-        switch (what) {
-          case 'acc':
-            d.push('A');
-            d.push(Puck.accel().acc.x);
-            d.push(Puck.accel().acc.y);
-            d.push(Puck.accel().acc.z);
-            digitalPulse(LED1, 1, 1);
+function printAccGyrMagRawData(freqencyHz) {
+  Puck.accelOn(freqencyHz);
+  //      Puck.accelWr(0x11, Puck.accelRd(0x11) | 0b00001100); // scale to 2000dps
+  Puck.magOn();
+  setInterval(
+    function () {
+      var d = [];
 
-            break;
-          case 'gyr':
-            d.push('G');
-            d.push(Puck.accel().gyro.x);
-            d.push(Puck.accel().gyro.y);
-            d.push(Puck.accel().gyro.z);
-            digitalPulse(LED2, 1, 1);
+      d.push('A');
+      d.push(Puck.accel().acc.x);
+      d.push(Puck.accel().acc.y);
+      d.push(Puck.accel().acc.z);
 
-            break;
-          case 'mag':
-            d.push('M');
-            d.push(Puck.mag().x);
-            d.push(Puck.mag().y);
-            d.push(Puck.mag().z);
-            digitalPulse(LED3, 1, 1);
-            break;
-          default:
-            d.push(what);
-        }
-        Bluetooth.println(d.join(","));
-      },
-      125
-    );
-  }
+      d.push('G');
+      d.push(Puck.accel().gyro.x);
+      d.push(Puck.accel().gyro.y);
+      d.push(Puck.accel().gyro.z);
+
+      d.push('M');
+      d.push(Puck.mag().x);
+      d.push(Puck.mag().y);
+      d.push(Puck.mag().z);
+      digitalPulse(LED1, 1, 1);
+
+      Bluetooth.println(d.join(","));
+    },
+    1000 / freqencyHz
+  );
 }
 
 /**
@@ -439,30 +564,6 @@ function rotationAdvertising() {
 }
 
 /**
- * Calibration TODO
- */
-function calibrateAcc() {
-  Puck.accelOn();
-
-  setInterval(
-    function () {
-      var d = [
-
-        Math.round(Puck.accel().acc.x),
-        Math.round(Puck.accel().acc.y),
-        Math.round(Puck.accel().acc.z)
-
-      ];
-      Bluetooth.println(d.join(" "));
-    },
-    100
-  );
-}
-
-
-
-
-/**
  * OLED
  */
 function OLED_HelloWorld() {
@@ -488,3 +589,8 @@ function OLED_HelloWorld() {
     }, 500);
   }
 }
+
+/**
+ * Run
+ */
+onload();
