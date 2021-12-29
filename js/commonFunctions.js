@@ -41,7 +41,7 @@ function onload() {
     <button id="btnOLED_HelloWorld">OLED_HelloWorld</button>
     <br /><br />
 
-    <button id="btnShowCube">Show cube</button>
+    <button id="btnShowAHRSCube">Show AHRS Cube</button>
 
     <br /><br />
 
@@ -104,16 +104,17 @@ function onload() {
     sendCodeToDevice("(" + I2CScanner.toString() + ")({i2c: I2C1, serial: " + selectedValue + "});\n");
   };
 
-  // When we click the btnAccGyrMAgRawData button...
-  document.querySelector('#btnShowCube').onclick = function () {
+  // When we click the btnShowAHRSCube button...
+  document.querySelector('#btnShowAHRSCube').onclick = function () {
     var freqencyHz = 12.5; // Hz
     // Valid sample rates : 1660, 833, 416, 208, 104, 52, 26, 12.5, 1.6 Hz
     sendCodeToDevice("(" + printAccGyrMagRawData.toString() + ")(" + freqencyHz + ");\n");
-    initAHRS(freqencyHz);
-    createScene();
-    render();
+    showAHRSCube(freqencyHz);
   };
-
+  /*
+  var freqencyHz = 12.5; // Hz
+  showAHRSCube(freqencyHz);
+   */
   // When we click the OLED_HelloWorld button...
   document.querySelector('#btnOLED_HelloWorld').onclick = function () {
     var jsCode = jsCode = "I2C1.setup({scl:D30,sda:D31});\n";
@@ -196,7 +197,8 @@ var _acc, _gyr, _mag, _bHasRawData = false;
 
 function onLine(line) {
   readenLine = line;
-  //console.log("<- " + line);
+  // console.log("<- " + line);
+  // Something like this : A,-1416,-152,8049,G,197,-452,-160,M,2687,-9258,5956
   _bHasRawData = false;
 
   var d = line.split(",");
@@ -208,8 +210,7 @@ function onLine(line) {
   if (d[i++] != 'G') return;
   _gyr = new THREE.Vector3(parseFloat(d[i++]), parseFloat(d[i++]), parseFloat(d[i++]));
   if (d[i++] != 'M') return;
-  //_mag = new THREE.Vector3(parseFloat(d[i++])/1000., parseFloat(d[i++])/1000., parseFloat(d[i++])/1000.);
-  _mag = new THREE.Vector3(0, 0, 0);
+  _mag = new THREE.Vector3(parseFloat(d[i++]) / 1000., parseFloat(d[i++]) / 1000., parseFloat(d[i++]) / 1000.);
 
   _bHasRawData = true;
   //console.log(_acc);
@@ -224,7 +225,7 @@ function onLine(line) {
  */
 var scene, camera, renderer, cube, filter, bias;
 
-function initAHRS(freqencyHz) {
+function showAHRSCube(freqencyHz) {
   const AHRS = require('ahrs');
   filter = new AHRS({
     /*
@@ -328,78 +329,148 @@ function initAHRS(freqencyHz) {
     }
   };
   bias.init();
-}
 
-function createScene() {
-  scene = new THREE.Scene();
+  var camera, scene, renderer, cube;
+  init();
+  animate();
 
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10);
-  camera.position.set(0, 3.5, 5);
-  camera.lookAt(scene.position);
+  function init() {
 
-  renderer = new THREE.WebGLRenderer({
-    antialias: true
-  });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+    // Textures
+    const loader = new THREE.TextureLoader();
+    loader.setPath('../textures/');
+    let cubeMaterials = [
+      new THREE.MeshBasicMaterial({
+        map: loader.load('Right.png'),
+        side: THREE.DoubleSide
+      }),
+      new THREE.MeshBasicMaterial({
+        map: loader.load('Left.png'),
+        side: THREE.DoubleSide
+      }),
+      new THREE.MeshBasicMaterial({
+        map: loader.load('Back.png'),
+        side: THREE.DoubleSide
+      }),
+      new THREE.MeshBasicMaterial({
+        map: loader.load('Front.png'),
+        side: THREE.DoubleSide
+      }),
+      new THREE.MeshBasicMaterial({
+        map: loader.load('Top.png'),
+        side: THREE.DoubleSide
+      }),
+      new THREE.MeshBasicMaterial({
+        map: loader.load('Bottom.png'),
+        side: THREE.DoubleSide
+      })
+    ];
 
-  document.body.appendChild(renderer.domElement);
+    // Shape
+    const geometry = new THREE.BoxGeometry(712, 1066, 357);
+    cube = new THREE.Mesh(geometry, cubeMaterials);
 
-  cube = new THREE.Mesh(new THREE.CubeGeometry(2, 2, 2), new THREE.MeshNormalMaterial());
-  scene.add(cube);
+    // Scene
+    scene = new THREE.Scene();
+    scene.add(cube);
+
+    // Camera
+    camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 10, 3000);
+    camera.position.x = 0;
+    camera.position.y = 0;
+    camera.position.z = 900;
+
+    // Renderer
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Insert in DOM
+    document.body.appendChild(renderer.domElement);
+    window.addEventListener('resize', onWindowResize);
+  }
+
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    render();
+  }
+
+  function render() {
+    /*
+    cube.rotation.x += 0.005;
+    cube.rotation.y += 0.005;
+    cube.rotation.z += 0.005;
+    renderer.render(scene, camera);
+    return;
+     */
+    if (!_bHasRawData) return;
+    _bHasRawData = false;
+
+    if (!bias.gyrBiasDone || !bias.accBiasDone) {
+      bias.computeGyrBias(_gyr);
+      bias.computeAccBias(_acc);
+
+      if (bias.gyrBiasDone)
+        console.log('bias.gyrBias :' + JSON.stringify(bias.gyrBias));
+      if (bias.accBiasDone)
+        console.log('bias.accBias :' + JSON.stringify(bias.accBias));
+    }
+
+    if (bias.gyrBiasDone && bias.accBiasDone) {
+      /*
+        Wanted units:
+          gyroscope: radians/s
+          accelerometer: g, where 1 g is 9.81 m/s²
+          magnetometer: unitless, but a relative proportion of the Earth's magnetic field
+       */
+
+      // Cf. https://www.espruino.com/Reference#Puck
+      // accelerometer: full-scale (32768) is 4g, so you need to divide by 8192 to get correctly scaled values
+      // gyro: full-scale (32768) is 245 dps, so you need to divide by 134 to get correctly scaled values
+
+      //filter.update(_gyr.x, _gyr.y, _gyr.z, _acc.x, _acc.y, _acc.z, _mag.x, _mag.y, _mag.z, 0.1);
+      var gyrDivider = 0.5; //134;
+      var accDivider = 8192;
+      _mag = new THREE.Vector3(0, 0, 0); // to inhibate magnetometer
+      filter.update(
+        degrees_to_radians((_gyr.x - bias.gyrBias.x) / gyrDivider),
+        degrees_to_radians((_gyr.y - bias.gyrBias.y) / gyrDivider),
+        degrees_to_radians((_gyr.z - bias.gyrBias.z) / gyrDivider),
+        (_acc.x - bias.accBias.x) / accDivider,
+        (_acc.y - bias.accBias.y) / accDivider,
+        (_acc.z - bias.accBias.z + accDivider) / accDivider,
+        _mag.x, _mag.y, _mag.z,
+        1000 / filter.sampleInterval);
+
+      var eulerAngles = filter.getEulerAngles();
+      // values in radians
+      // heading is from north, going west (about z - axis).
+      // pitch is from vertical, going forward (about y - axis).
+      // roll is from vertical, going right (about x - axis).
+      cube.rotation.z = eulerAngles.heading; // yaw
+      cube.rotation.y = eulerAngles.pitch;
+      cube.rotation.x = eulerAngles.roll;
+
+      /*
+      cube.rotation.x += degrees_to_radians(_gyr.x);
+      cube.rotation.y += degrees_to_radians(_gyr.y);
+      cube.rotation.z += degrees_to_radians(_gyr.z);
+       */
+    }
+
+    renderer.render(scene, camera);
+  }
 }
 
 const degrees_to_radians = deg => (deg * Math.PI) / 180.0;
-
-// Render function.
-var render = function () {
-  requestAnimationFrame(render);
-
-  if (!_bHasRawData) return;
-  _bHasRawData = false;
-
-  if (!bias.gyrBiasDone || !bias.accBiasDone) {
-    bias.computeGyrBias(_gyr);
-    bias.computeAccBias(_acc);
-
-    if (bias.gyrBiasDone)
-      console.log('bias.gyrBias :' + JSON.stringify(bias.gyrBias));
-    if (bias.accBiasDone)
-      console.log('bias.accBias :' + JSON.stringify(bias.accBias));
-  }
-
-  if (bias.gyrBiasDone && bias.accBiasDone) {
-    /*
-      Units:
-        gyroscope: radians/s
-        accelerometer: g, where 1 g is 9.81 m/s²
-        magnetometer: unitless, but a relative proportion of the Earth's magnetic field
-     */
-
-    //filter.update(_gyr.x, _gyr.y, _gyr.z, _acc.x, _acc.y, _acc.z, _mag.x, _mag.y, _mag.z, 0.1);
-    filter.update(
-      degrees_to_radians(_gyr.x - bias.gyrBias.x), degrees_to_radians(_gyr.y - bias.gyrBias.y), degrees_to_radians(_gyr.z - bias.gyrBias.z),
-      _acc.x - bias.accBias.x, _acc.y - bias.accBias.y, -(_acc.z - bias.accBias.z),
-      _mag.x, _mag.y, _mag.z,
-      1000 / filter.sampleInterval);
-    var eulerAngles = filter.getEulerAngles();
-    // values in radians
-    // heading is from north, going west (about z - axis).
-    // pitch is from vertical, going forward (about y - axis).
-    // roll is from vertical, going right (about x - axis).
-    cube.rotation.z = eulerAngles.heading; // yaw
-    cube.rotation.x = eulerAngles.pitch;
-    cube.rotation.y = eulerAngles.roll;
-    /*
-    cube.rotation.x += degrees_to_radians(_gyr.x);
-    cube.rotation.y += degrees_to_radians(_gyr.y);
-    cube.rotation.z += degrees_to_radians(_gyr.z);
-     */
-
-    //console.log(eulerAngles);
-  };
-
-  renderer.render(scene, camera);
-};
 
 /*
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

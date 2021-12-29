@@ -17,8 +17,10 @@ Actualy, it is more a set of personal experiments...
 
 ## Used libraries
  - [AHRS (Attitude Heading Reference Systems) calculation for JavaScript](https://github.com/psiphi75/ahrs)
- - [AHRS Sensor Fusion Library (JavaScript)](https://github.com/xonoxitron/AHRS-Sensors-Fusion-JS) comming from its [original C++ Fusion library](https://github.com/xioTechnologies/Fusion/)
- - [AHRS sensor fusion algorithm](https://github.com/xioTechnologies/Fusion])
+ - [AHRS Sensor Fusion Library (JavaScript)](https://github.com/xonoxitron/AHRS-Sensors-Fusion-JS) 
+ - [Sebastion Magwick's IMU and AHRS sensor fusion algorithms in JavaScript](https://github.com/ZiCog/madgwick.js) 
+ - (both previous libraires come from [X-IO Technologies Open source IMU and AHRS algorithms](https://github.com/xioTechnologies/Fusion])
+)
 
 ## Some test results
   - [Some Espruino tests (I2C scan, AHRS cube, ...)](https://philippeardit.github.io/espruinoSandBox/html/espruinoTests.html)
