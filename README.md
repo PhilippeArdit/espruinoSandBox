@@ -1,7 +1,7 @@
-# This is my [webPages](https://philippeardit.github.io/webPages/) repository
-In fact, it is more a set of personal experiments...
+# This is my [espruinoSandBox](https://philippeardit.github.io/espruinoSandBox/) repository
+Actualy, it is more a set of personal experiments...
 
-## Resources :
+## Resources
 - Material Design Icons : [https://materialdesignicons.com/](https://materialdesignicons.com)
 - JSON Parser : [https://jsonparser.online](https://jsonparser.online)
 - Build, test, and debug regex : [https://regex101.com](https://regex101.com)
@@ -11,11 +11,16 @@ In fact, it is more a set of personal experiments...
 - [Espruino IDE](https://www.espruino.com/ide)
 - [Puck.js - Espruino](https://www.espruino.com/Puck.js)
 - [EspruinoDocs on GitHub](https://github.com/espruino/EspruinoDocs/blob/master/boards/Puck.js.md)
-- [SSD1306 OLED driver⇠](https://www.espruino.com/SSD1306)
-- [Cube visualisation wuth "three.js"](https://threejs.org/)
-- [I2C Scanner](https://github.com/PaddeK/espruino-i2c-scanner)
+- [SSD1306 OLED driver](https://www.espruino.com/SSD1306)
+- [Three.js, a 3D library that makes it easy to get 3D content on a webpage](https://threejs.org/)
+- [Espruino I2C Scanner](https://github.com/PaddeK/espruino-i2c-scanner)
 
-- Some tests :
-  - [espruinoTests (I2C scan, cube, ...)](https://philippeardit.github.io/webPages/html/espruinoTests.html)
-  - Tutorial "[Using Web Bluetooth with Espruino](https://www.espruino.com/Web%20Bluetooth)" : [Pilot RGB lights and get button state](https://philippeardit.github.io/webPages/html/puckJsTestBtnAndLights.html)
-  - Tutorial "[Web Bluetooth Dashboards](https://www.espruino.com/Web+Bluetooth+Dashboard)" : [Sensord DashBoard](https://philippeardit.github.io/webPages/html/puckJsWebBleDashBoard.html)
+## Used libraries
+ - [AHRS (Attitude Heading Reference Systems) calculation for JavaScript](https://github.com/psiphi75/ahrs)
+ - [AHRS Sensor Fusion Library (JavaScript)](https://github.com/xonoxitron/AHRS-Sensors-Fusion-JS) comming from its [original C++ Fusion library](https://github.com/xioTechnologies/Fusion/)
+ - [AHRS sensor fusion algorithm](https://github.com/xioTechnologies/Fusion])
+
+## Some test results
+  - [Some Espruino tests (I2C scan, AHRS cube, ...)](https://philippeardit.github.io/espruinoSandBox/html/espruinoTests.html)
+  - [Pilot RGB lights and get button state](https://philippeardit.github.io/espruinoSandBox/html/puckJsTestBtnAndLights.html) (from the tutorial "[Using Web Bluetooth with Espruino](https://www.espruino.com/Web%20Bluetooth)")
+  - [Sensord DashBoard](https://philippeardit.github.io/espruinoSandBox/html/puckJsWebBleDashBoard.html) (from the tutorial "[Web Bluetooth Dashboards](https://www.espruino.com/Web+Bluetooth+Dashboard)")
