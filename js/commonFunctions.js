@@ -1,9 +1,3 @@
-/**
- * Tests inspired from :
- * - https://www.espruino.com/Puck.js
- * - https://github.com/espruino/EspruinoDocs/blob/master/boards/Puck.js.md 
- */
-
 /*
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  * Client side JavaScript
@@ -17,57 +11,23 @@
 function onload() {
   console.log("Loading page...");
   document.write(`
-    This page presents some buttons wich interact with either 
-    <a href="https://www.espruino.com/Puck.js" target="_blank">Puck.js</a>
-    or
-    <a href="https://www.espruino.com/Pico" target="_blank">Espruino Pico</a>
+    <button id="btnReload">Reload Page</button>
     <br /><br />
-
-    <form>
-      Device type:
-      <input type="radio" name="deviceChoice" value="choice-PuckJs" id="choice-PuckJs">
-      <label for="choice-PuckJs">Puck.js</label>
-      <input type="radio" name="deviceChoice" value="choice-EspruinoPico" id="choice-EspruinoPico">
-      <label for="choice-EspruinoPico">Espruino Pico</label>
-    </form>
+    <a href="https://www.espruino.com/ide/" target="_blank" >www.espruino.com/ide/</a>
+    <br />
+    <a href="https://www.espruino.com/Puck.js" target="_blank" >www.espruino.com/Puck.js</a>
+    <br /><br />
     <button id="btnConnect">Connect</button>
     <button id="btnDisconnect">Disconnect</button>
-    <button id="btnReload">Reload</button>
+    <br /><br />
     <button id="btnReset">Reset</button>
-    <button id="btnSave">Save</button>
-
     <br /><br />
-    <button id="btnI2CScanner">I2CScanner</button>
-    <button id="btnOLED_HelloWorld">OLED_HelloWorld</button>
-    <br /><br />
-
     <button id="btnShowAHRSCube">Show AHRS Cube</button>
-
-    <br /><br />
-
   `);
-
-  function getRadioselectedValue(inputName) {
-    const rbs = document.querySelectorAll('input[name="' + inputName + '"]');
-    let selectedValue;
-    for (const rb of rbs) {
-      if (rb.checked) {
-        selectedValue = rb.value;
-        break;
-      }
-    }
-    if (typeof selectedValue == "undefined")
-      alert("Please make a choice for " + inputName);
-    return selectedValue;
-  }
 
   // When we click the connect button...
   document.querySelector('#btnConnect').onclick = function () {
-    let selectedValue = getRadioselectedValue('deviceChoice');
-    if (!selectedValue) return;
-
-    let PuckOrUART = selectedValue == 'choice-PuckJs' ? Puck : selectedValue == 'choice-EspruinoPico' ? UART : {};
-    connectToDevice(PuckOrUART, "(" + resetOnDisconnect.toString() + ")();\n", onLine);
+    connectToDevice(Puck, "(" + resetOnDisconnect.toString() + ")();\n", onLine);
   };
 
   // When we click the disconnect button...
@@ -85,25 +45,6 @@ function onload() {
     sendCodeToDevice("reset();\n");
   };
 
-  // When we click the Save button...
-  document.querySelector('#btnSave').onclick = function () {
-    sendCodeToDevice("save();\n");
-  };
-
-  // When we click the I2CScanner button...
-  document.querySelector('#btnI2CScanner').onclick = function () {
-    let selectedValue = getRadioselectedValue('deviceChoice');
-    if (!selectedValue) return;
-
-    let serialTarget = '';
-    if (selectedValue == 'choice-PuckJs')
-      serialTarget = 'Bluetooth';
-    else if (selectedValue == 'choice-EspruinoPico')
-      serialTarget = 'USB';
-
-    sendCodeToDevice("(" + I2CScanner.toString() + ")({i2c: I2C1, serial: " + selectedValue + "});\n");
-  };
-
   // When we click the btnShowAHRSCube button...
   document.querySelector('#btnShowAHRSCube').onclick = function () {
     var freqencyHz = 12.5; // Hz
@@ -115,17 +56,7 @@ function onload() {
   var freqencyHz = 12.5; // Hz
   showAHRSCube(freqencyHz);
    */
-  // When we click the OLED_HelloWorld button...
-  document.querySelector('#btnOLED_HelloWorld').onclick = function () {
-    var jsCode = jsCode = "I2C1.setup({scl:D30,sda:D31});\n";
-    jsCode = jscode + OLED_HelloWorld.toString() + "\n";
-    jsCode = jscode + SSD1306.toString() + "\n";
-    jsCode = jscode +
-      "var g = rSSD1306connect(i2c, callback, options)(I2C1, start, { address : 0x3C ,height : 48, width:64, bitrate:1000000});" +
-      "\n";;
-    sendCodeToDevice(jsCode);
-  };
-
+  
   console.log("Page loaded.");
 } // onload
 
@@ -137,10 +68,11 @@ var connection;
 
 function disconnectFromDevice() {
   if (connection) {
+    sendCodeToDevice("reset();\n");
     connection.close();
     connection = undefined;
   } else {
-    alert("Please connect first.");
+    console.log("Please connect first.");
   }
 }
 
@@ -155,16 +87,16 @@ function sendCodeToDevice(code) {
   }
 }
 
-function connectToDevice(PuckOrUART, JS_CODE, callBackFunction) {
+function connectToDevice(Puck, JS_CODE, callBackFunction) {
   if (connection) {
-    alert("Please disconnect first.");
+    console.log("Please disconnect first.");
     return;
   }
 
   // Connect
-  PuckOrUART.connect(function (c) {
+  Puck.connect(function (c) {
     if (!c) {
-      alert("Couldn't connect!");
+      console.log("Couldn't connect!");
       return;
     }
     connection = c;
@@ -482,15 +414,14 @@ const degrees_to_radians = deg => (deg * Math.PI) / 180.0;
  * Reset on disconnect
  */
 function resetOnDisconnect() {
-  if (typeof NRF != 'undefined') {
-    NRF.on(
-      'disconnect',
-      function () {
-        reset();
-      }
-    );
-  }
+  NRF.on(
+    'disconnect',
+    function () {
+      reset();
+    }
+  );
 }
+
 
 /**
  * Print (acc)accelerometer, (gyr)gyroscope, (mag)magnetometer raw data
@@ -634,32 +565,6 @@ function rotationAdvertising() {
   setAdvertising();
 }
 
-/**
- * OLED
- */
-function OLED_HelloWorld() {
-  function start() {
-    // write some text
-    g.drawString("Hello World!", 2, 2);
-
-    g.drawLine(0, 0, 20, 20);
-
-    // Draw a circle
-    g.drawCircle(20, 20, 10); // A circle with a radius of 50, centred at 100x100
-
-    // Draw a filled circle
-    g.fillCircle(20, 20, 10); // A filled circle with a radius of 50, centred at 100x100
-    // write to the screen
-    g.flip();
-
-    var bOn = true;
-    setInterval(function () {
-      bOn = !bOn;
-      if (bOn) g.on();
-      else g.off();
-    }, 500);
-  }
-}
 
 /**
  * Run
